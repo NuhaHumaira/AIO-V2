@@ -1,6 +1,6 @@
 #!/bin/bash
 # REPO
-REPO="https://raw.githubusercontent.com/Catzburry/AIO-V2/main/"
+REPO="https://raw.githubusercontent.com/erwinproject/AIO-V2/main/"
 
 #install
 cd /root

@@ -1,7 +1,7 @@
 # MULTIPORT VPN V2024
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/CatzBurry/AIO-V2/main/files/ss.png" />
+  <img src="https://raw.githubusercontent.com/erwinproject/AIO-V2/main/files/ss.png" />
 </p>
 
 ## TESTED VPS
