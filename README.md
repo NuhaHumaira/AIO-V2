@@ -17,7 +17,7 @@
 <pre></code>sudo su && wget https://raw.githubusercontent.com/anzclan/ovh-root/main/root && bash root</code></pre>
 
 ### INSTALATION
-<pre><code>apt update && apt upgrade -y && wget https://raw.githubusercontent.com/CatzBurry/AIO-V2/main/main.sh && chmod +x main.sh && ./main.sh</code></pre>
+<pre><code>apt update && apt upgrade -y && wget https://raw.githubusercontent.com/erwinproject/AIO-V2/main/main.sh && chmod +x main.sh && ./main.sh</code></pre>
 
 ## VERSION
 V3.0 - 09/02/2024
