@@ -1,4 +1,4 @@
-name: Clone, Decrypt, and Push Entire Repo
+name: Clone, Decrypt, and Push Repo
 
 on:
   workflow_dispatch:
@@ -6,33 +6,63 @@ on:
 jobs:
   clone-decrypt-push:
     runs-on: ubuntu-latest
+
     steps:
       # 1️⃣ Checkout current repo
-      - uses: actions/checkout@v3
+      - name: Checkout current repo
+        uses: actions/checkout@v3
 
       # 2️⃣ Set up Python
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      # 3️⃣ Decrypt all .sh files in current repo
+      # 3️⃣ Decrypt all .sh files recursively
       - name: Decrypt all .sh files
-        run: python3 decrypt_all.py
+        run: |
+          python3 <<'EOF'
+          import os
 
-      # 4️⃣ Clone target repo
+          def decrypt_file(in_file):
+              if not os.path.exists(in_file):
+                  print(f"[!] File not found: {in_file}")
+                  return
+              with open(in_file,'r') as in_f, open(".temp1",'w') as temp_f:
+                  filedata = in_f.read()
+                  if "eval" not in filedata:
+                      print(f"[!] Cannot decrypt (no eval found): {in_file}")
+                      return
+                  temp_f.write(filedata.replace("eval","echo"))
+              os.system(f"bash .temp1 > .temp2")
+              os.remove(".temp1")
+              with open(in_file,'w') as out_f:
+                  out_f.write("# Decrypted by K-fuscator\n\n")
+                  with open(".temp2",'r') as temp_f2:
+                      out_f.write(temp_f2.read())
+              os.remove(".temp2")
+              print(f"[✓] Decrypted {in_file}")
+
+          for root, dirs, files in os.walk("."):
+              for file in files:
+                  if file.endswith(".sh"):
+                      full_path = os.path.join(root, file)
+                      decrypt_file(full_path)
+          EOF
+
+      # 4️⃣ Clone target repository using token
       - name: Clone target repository
         env:
           GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
         run: |
           git clone https://x-access-token:${GH_TOKEN}@github.com/NuhaHumaira/aia.git target_repo
 
-      # 5️⃣ Copy all files (entire current repo) to target repo
+      # 5️⃣ Copy all files (including decrypted .sh) to target repo
       - name: Copy all files to target repo
         run: |
           rsync -av --exclude=".git" ./ target_repo/
 
       # 6️⃣ Commit and push to target repo
-      - name: Commit and push to target repo
+      - name: Commit and push
         working-directory: target_repo
         env:
           GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
