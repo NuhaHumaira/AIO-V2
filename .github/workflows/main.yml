@@ -1,0 +1,39 @@
+name: Decrypt & Release SH Files
+
+on:
+  workflow_dispatch:
+
+jobs:
+  decrypt-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Checkout the repo
+      - uses: actions/checkout@v3
+
+      # 2️⃣ Install Node.js, npm, and bash-obfuscate
+      - name: Install Node.js, npm and bash-obfuscate
+        run: |
+          sudo apt update
+          sudo apt install nodejs npm -y
+          npm install -g bash-obfuscate
+
+      # 3️⃣ Set up Python
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # 4️⃣ Run decryption script
+      - name: Decrypt all .sh files
+        run: python3 decrypt_all.py
+
+      # 5️⃣ Install GitHub CLI
+      - name: Install GitHub CLI
+        run: sudo apt install gh -y
+
+      # 6️⃣ Create a release and upload decrypted files
+      - name: Create release and upload decrypted files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="decrypted-$(date +%Y%m%d-%H%M%S)"
+          gh release create $VERSION decrypted_files/* -t "Decrypted SH files $VERSION" -n "All decrypted .sh files from K-fuscator"
