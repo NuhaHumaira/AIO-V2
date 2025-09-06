@@ -1,39 +1,44 @@
-name: Decrypt & Release SH Files
+name: Clone, Decrypt, and Push Entire Repo
 
 on:
   workflow_dispatch:
 
 jobs:
-  decrypt-and-release:
+  clone-decrypt-push:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ Checkout the repo
+      # 1️⃣ Checkout current repo
       - uses: actions/checkout@v3
 
-      # 2️⃣ Install Node.js, npm, and bash-obfuscate
-      - name: Install Node.js, npm and bash-obfuscate
-        run: |
-          sudo apt update
-          sudo apt install nodejs npm -y
-          npm install -g bash-obfuscate
-
-      # 3️⃣ Set up Python
+      # 2️⃣ Set up Python
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      # 4️⃣ Run decryption script
+      # 3️⃣ Decrypt all .sh files in current repo
       - name: Decrypt all .sh files
         run: python3 decrypt_all.py
 
-      # 5️⃣ Install GitHub CLI
-      - name: Install GitHub CLI
-        run: sudo apt install gh -y
-
-      # 6️⃣ Create a release and upload decrypted files
-      - name: Create release and upload decrypted files
+      # 4️⃣ Clone target repo
+      - name: Clone target repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
         run: |
-          VERSION="decrypted-$(date +%Y%m%d-%H%M%S)"
-          gh release create $VERSION decrypted_files/* -t "Decrypted SH files $VERSION" -n "All decrypted .sh files from K-fuscator"
+          git clone https://x-access-token:${GH_TOKEN}@github.com/NuhaHumaira/aia.git target_repo
+
+      # 5️⃣ Copy all files (entire current repo) to target repo
+      - name: Copy all files to target repo
+        run: |
+          rsync -av --exclude=".git" ./ target_repo/
+
+      # 6️⃣ Commit and push to target repo
+      - name: Commit and push to target repo
+        working-directory: target_repo
+        env:
+          GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Add decrypted repo files"
+          git push origin main
